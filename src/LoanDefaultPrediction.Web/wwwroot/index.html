@@ -31,6 +31,47 @@
     <main class="dashboard-grid">
         <!-- LEFT COLUMN: Admin, Stats, Explainability -->
         <section class="col-left">
+            <!-- Ingestion & Training Panel -->
+            <div class="card admin-card">
+                <div class="card-header">
+                    <h2>Model Management Console</h2>
+                    <span class="subtitle">Data ingestion and training pipeline controls</span>
+                </div>
+                <div class="admin-actions">
+                    <!-- Local CSV Ingest -->
+                    <div class="upload-section">
+                        <label for="csv-file" class="custom-file-upload">
+                            Choose CSV File
+                        </label>
+                        <input type="file" id="csv-file" accept=".csv">
+                        <button class="btn btn-secondary" id="btn-ingest">Upload & Ingest</button>
+                    </div>
+
+                    <!-- Kaggle API Ingest -->
+                    <div class="kaggle-section" style="display: flex; gap: 1rem; flex-direction: column; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Import from Kaggle API</span>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="kaggle-path" placeholder="owner/dataset (e.g. nikhil1e9/loan-default-prediction)" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); font-size: 0.85rem; outline: none;">
+                            <button class="btn btn-secondary" id="btn-kaggle-ingest" style="padding: 0.5rem 1rem;">Pull & Load</button>
+                        </div>
+                    </div>
+
+                    <div class="ingest-progress-container" id="ingest-progress">
+                        <div class="loader-spinner"></div>
+                        <span id="ingest-status-text">Ingesting data...</span>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" id="btn-train" style="margin-top: 0.5rem;">
+                        <span class="btn-text">Execute Training Pipeline</span>
+                        <div class="btn-loader loader-spinner"></div>
+                    </button>
+
+                    <button class="btn btn-secondary btn-block" id="btn-clear" style="margin-top: 0.5rem;">
+                        Reset Database
+                    </button>
+                </div>
+            </div>
+
             <!-- Summary Stats Card -->
             <div class="card stats-card">
                 <div class="card-header">
@@ -112,47 +153,6 @@
                     <div class="chart-fallback" id="chart-placeholder">
                         <p>No active model trained. Please ingest data and train to view explainability.</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- Ingestion & Training Panel -->
-            <div class="card admin-card">
-                <div class="card-header">
-                    <h2>Model Management Console</h2>
-                    <span class="subtitle">Data ingestion and training pipeline controls</span>
-                </div>
-                <div class="admin-actions">
-                    <!-- Local CSV Ingest -->
-                    <div class="upload-section">
-                        <label for="csv-file" class="custom-file-upload">
-                            Choose CSV File
-                        </label>
-                        <input type="file" id="csv-file" accept=".csv">
-                        <button class="btn btn-secondary" id="btn-ingest">Upload & Ingest</button>
-                    </div>
-
-                    <!-- Kaggle API Ingest -->
-                    <div class="kaggle-section" style="display: flex; gap: 1rem; flex-direction: column; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
-                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Import from Kaggle API</span>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="kaggle-path" placeholder="owner/dataset (e.g. nikhil1e9/loan-default-prediction)" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); font-size: 0.85rem; outline: none;">
-                            <button class="btn btn-secondary" id="btn-kaggle-ingest" style="padding: 0.5rem 1rem;">Pull & Load</button>
-                        </div>
-                    </div>
-
-                    <div class="ingest-progress-container" id="ingest-progress">
-                        <div class="loader-spinner"></div>
-                        <span id="ingest-status-text">Ingesting data...</span>
-                    </div>
-                    
-                    <button class="btn btn-primary btn-block" id="btn-train" style="margin-top: 0.5rem;">
-                        <span class="btn-text">Execute Training Pipeline</span>
-                        <div class="btn-loader loader-spinner"></div>
-                    </button>
-
-                    <button class="btn btn-secondary btn-block" id="btn-clear" style="margin-top: 0.5rem;">
-                        Reset Database
-                    </button>
                 </div>
             </div>
         </section>
