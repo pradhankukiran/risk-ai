@@ -36,6 +36,14 @@ async function fetchStats() {
             
             document.getElementById('model-accuracy').textContent = `${(data.activeModel.accuracy * 100).toFixed(2)}%`;
             document.getElementById('model-auc').textContent = data.activeModel.areaUnderRoc.toFixed(4);
+            document.getElementById('model-precision').textContent = `${(data.activeModel.precision * 100).toFixed(2)}%`;
+            document.getElementById('model-recall').textContent = `${(data.activeModel.recall * 100).toFixed(2)}%`;
+
+            const cm = data.activeModel.confusionMatrix || {};
+            document.getElementById('matrix-tn').textContent = (cm.TN || 0).toLocaleString();
+            document.getElementById('matrix-fn').textContent = (cm.FN || 0).toLocaleString();
+            document.getElementById('matrix-fp').textContent = (cm.FP || 0).toLocaleString();
+            document.getElementById('matrix-tp').textContent = (cm.TP || 0).toLocaleString();
             
             const trainedDate = new Date(data.activeModel.trainedAt);
             document.getElementById('model-trained-at').textContent = trainedDate.toLocaleString();
@@ -51,6 +59,12 @@ async function fetchStats() {
             activeModelText.className = 'badge';
             document.getElementById('model-accuracy').textContent = '0.00%';
             document.getElementById('model-auc').textContent = '0.0000';
+            document.getElementById('model-precision').textContent = '0.00%';
+            document.getElementById('model-recall').textContent = '0.00%';
+            document.getElementById('matrix-tn').textContent = '0';
+            document.getElementById('matrix-fn').textContent = '0';
+            document.getElementById('matrix-fp').textContent = '0';
+            document.getElementById('matrix-tp').textContent = '0';
             document.getElementById('model-trained-at').textContent = '-';
             
             if (pfiChart) {

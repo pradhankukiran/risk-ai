@@ -68,7 +68,35 @@
                         <span class="stat-value" id="model-auc">0.00</span>
                     </div>
                 </div>
-                <div class="model-meta">
+                <div class="stats-row" style="margin-top: 1rem;">
+                    <div class="stat-box">
+                        <span class="stat-label">Precision</span>
+                        <span class="stat-value" id="model-precision">0.00%</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Recall</span>
+                        <span class="stat-value" id="model-recall">0.00%</span>
+                    </div>
+                </div>
+                
+                <div class="confusion-matrix-section" style="margin-top: 1.25rem;">
+                    <h3 style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Confusion Matrix (Test Data)</h3>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell header-cell"></div>
+                        <div class="matrix-cell header-cell">Actual No Default</div>
+                        <div class="matrix-cell header-cell">Actual Default</div>
+                        
+                        <div class="matrix-cell side-header-cell">Pred No Default</div>
+                        <div class="matrix-cell val-cell" id="matrix-tn">0</div>
+                        <div class="matrix-cell val-cell" id="matrix-fn">0</div>
+                        
+                        <div class="matrix-cell side-header-cell">Pred Default</div>
+                        <div class="matrix-cell val-cell" id="matrix-fp">0</div>
+                        <div class="matrix-cell val-cell" id="matrix-tp">0</div>
+                    </div>
+                </div>
+
+                <div class="model-meta" style="margin-top: 1rem;">
                     <span>Trained: <strong id="model-trained-at">-</strong></span>
                 </div>
             </div>
