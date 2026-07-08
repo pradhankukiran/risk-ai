@@ -12,13 +12,21 @@ using LoanDefaultPrediction.Common;
 using LoanDefaultPrediction.Web.Data;
 using LoanDefaultPrediction.Web.Services;
 
-// Load .env file if it exists (for local development)
-var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-if (!File.Exists(envFilePath))
+// Load .env file if it exists (for local development, searching up the folder hierarchy)
+string? envFilePath = null;
+var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+while (currentDir != null)
 {
-    envFilePath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+    var possibleEnv = Path.Combine(currentDir.FullName, ".env");
+    if (File.Exists(possibleEnv))
+    {
+        envFilePath = possibleEnv;
+        break;
+    }
+    currentDir = currentDir.Parent;
 }
-if (File.Exists(envFilePath))
+
+if (envFilePath != null)
 {
     foreach (var line in File.ReadAllLines(envFilePath))
     {
