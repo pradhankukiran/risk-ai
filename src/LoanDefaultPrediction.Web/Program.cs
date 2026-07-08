@@ -22,6 +22,7 @@ builder.Services.AddDbContext<LoanDbContext>(options =>
 // Register Services
 builder.Services.AddScoped<IngestionService>();
 builder.Services.AddScoped<ModelTrainingService>();
+builder.Services.AddHttpClient<DatasetDownloadService>();
 
 // Register PredictionEnginePool for ML.NET predictions
 var modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "models", "active_model.zip");
@@ -139,6 +140,29 @@ app.MapPost("/api/ingest", async (IFormFile file, IngestionService ingestionServ
     return Results.Ok(summary);
 }).DisableAntiforgery();
 
+app.MapPost("/api/kaggle-ingest", async (KaggleIngestRequest request, DatasetDownloadService downloadService) =>
+{
+    if (request == null || string.IsNullOrWhiteSpace(request.DatasetPath))
+    {
+        return Results.BadRequest(new { Error = "Dataset path is required." });
+    }
+
+    var batchId = Guid.NewGuid().ToString("N");
+    try
+    {
+        var summary = await downloadService.DownloadAndIngestAsync(request.DatasetPath, batchId);
+        return Results.Ok(summary);
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("credentials"))
+    {
+        return Results.Json(new { Error = ex.Message }, statusCode: StatusCodes.Status401Unauthorized);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { Error = ex.Message });
+    }
+}).DisableAntiforgery();
+
 app.MapPost("/api/train", async (ModelTrainingService trainingService, IServiceProvider serviceProvider) =>
 {
     try
@@ -230,3 +254,8 @@ app.MapPost("/api/predict", (PredictionEnginePool<LoanData, LoanPrediction> pred
 }).DisableAntiforgery();
 
 app.Run();
+
+public class KaggleIngestRequest
+{
+    public string DatasetPath { get; set; } = string.Empty;
+}
