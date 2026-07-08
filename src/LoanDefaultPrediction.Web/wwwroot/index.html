@@ -174,16 +174,12 @@
                 </div>
                 
                 <div class="result-details">
-                    <!-- Gauge and Verdict -->
+                    <!-- Risk Bar and Verdict -->
                     <div class="verdict-row">
-                        <div class="gauge-container">
-                            <svg class="gauge-ring" width="120" height="120">
-                                <circle class="gauge-ring-bg" cx="60" cy="60" r="52"></circle>
-                                <circle class="gauge-ring-fill" id="risk-gauge" cx="60" cy="60" r="52" style="stroke-dasharray: 326.7; stroke-dashoffset: 326.7;"></circle>
-                            </svg>
-                            <div class="gauge-text">
-                                <span id="risk-percentage">0%</span>
-                                <span class="gauge-sub">Risk Score</span>
+                        <div class="risk-bar-container">
+                            <span class="risk-bar-label">Calculated Default Risk: <span id="risk-percentage">0%</span></span>
+                            <div class="risk-bar-bg">
+                                <div class="risk-bar-fill" id="risk-bar" style="width: 0%;"></div>
                             </div>
                         </div>
                         <div class="verdict-text">

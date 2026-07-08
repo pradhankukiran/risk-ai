@@ -1,26 +1,27 @@
 :root {
-    --bg-primary: #090d16;
-    --bg-secondary: rgba(17, 24, 39, 0.65);
-    --border-color: rgba(255, 255, 255, 0.08);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --accent: #6366f1;
-    --accent-hover: #4f46e5;
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --border-color: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --accent: #2563eb; /* Royal Blue */
+    --accent-hover: #1d4ed8;
     
-    --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.15);
-    --risk: #ef4444;
-    --risk-bg: rgba(239, 68, 68, 0.15);
-    --warning: #f59e0b;
+    --success: #059669; /* Solid Green */
+    --success-bg: #ecfdf5;
+    --risk: #dc2626; /* Solid Red */
+    --risk-bg: #fef2f2;
+    --warning: #d97706;
     
     --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.2s ease-in-out;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    border-radius: 0 !important; /* Force 0 border-radius on all elements */
 }
 
 body {
@@ -34,17 +35,8 @@ body {
     flex-direction: column;
 }
 
-/* Background Gradients */
 .glow-bg {
-    position: fixed;
-    top: -20%;
-    left: -20%;
-    width: 140vw;
-    height: 140vh;
-    background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-    z-index: -1;
-    pointer-events: none;
+    display: none; /* No gradients or glow backgrounds */
 }
 
 /* Header */
@@ -53,8 +45,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 2rem;
-    background: rgba(9, 13, 22, 0.8);
-    backdrop-filter: blur(12px);
+    background: #ffffff;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
@@ -70,7 +61,6 @@ body {
 .logo-icon {
     font-size: 1.5rem;
     color: var(--accent);
-    text-shadow: 0 0 12px var(--accent);
 }
 
 .logo-container h1 {
@@ -87,16 +77,15 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     padding: 0.2rem 0.6rem;
-    border-radius: 9999px;
-    background: rgba(99, 102, 241, 0.15);
-    color: #a5b4fc;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: #e2e8f0;
+    color: #334155;
+    border: 1px solid #cbd5e1;
 }
 
 .badge-success {
     background: var(--success-bg);
-    color: #6ee7b7;
-    border-color: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+    border-color: var(--success);
 }
 
 .status-container {
@@ -105,18 +94,15 @@ body {
     gap: 0.5rem;
     font-size: 0.85rem;
     color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.03);
+    background: #f1f5f9;
     padding: 0.4rem 0.8rem;
-    border-radius: 9999px;
     border: 1px solid var(--border-color);
 }
 
 .status-dot {
     width: 8px;
     height: 8px;
-    border-radius: 50%;
     background-color: var(--success);
-    box-shadow: 0 0 8px var(--success);
 }
 
 .pulsating {
@@ -124,9 +110,9 @@ body {
 }
 
 @keyframes pulsate {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.3); opacity: 0.4; }
-    100% { transform: scale(1); opacity: 1; }
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
 }
 
 /* Dashboard Layout */
@@ -147,21 +133,17 @@ body {
     gap: 2rem;
 }
 
-/* Premium Card Design */
+/* Premium Card Design - Flat & Square */
 .card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
     padding: 1.5rem;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
+    box-shadow: none; /* No gradients, plain border */
     transition: var(--transition);
 }
 
 .card:hover {
-    border-color: rgba(99, 102, 241, 0.25);
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.06);
-    transform: translateY(-2px);
+    border-color: var(--accent);
 }
 
 .card-header {
@@ -190,9 +172,8 @@ body {
 }
 
 .stat-box {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
+    background: #f1f5f9;
+    border: 1px solid var(--border-color);
     padding: 1rem;
 }
 
@@ -216,17 +197,15 @@ body {
 
 .progress-bar-container {
     width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 9999px;
+    height: 8px;
+    background: #e2e8f0;
     margin-top: 1rem;
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
-    border-radius: 9999px;
+    background: var(--accent); /* Solid blue, no gradient */
     transition: width 1s ease-out;
 }
 
@@ -255,9 +234,7 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: rgba(9, 13, 22, 0.6);
-    backdrop-filter: blur(4px);
-    border-radius: 12px;
+    background: rgba(248, 250, 252, 0.9);
     padding: 1.5rem;
     color: var(--text-secondary);
     font-size: 0.9rem;
@@ -287,9 +264,8 @@ body {
 }
 
 .form-group input, .form-group select {
-    background: rgba(255, 255, 255, 0.03);
+    background: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: 10px;
     padding: 0.65rem 0.85rem;
     color: var(--text-primary);
     font-family: var(--font-main);
@@ -301,8 +277,7 @@ body {
 
 .form-group input:focus, .form-group select:focus {
     border-color: var(--accent);
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+    box-shadow: none; /* No glows */
 }
 
 /* Buttons */
@@ -311,7 +286,6 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.75rem 1.5rem;
-    border-radius: 10px;
     font-family: var(--font-main);
     font-weight: 600;
     font-size: 0.95rem;
@@ -324,24 +298,24 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent) 0%, #4338ca 100%);
+    background: var(--accent); /* Solid blue, no gradient */
     color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+    box-shadow: none; /* No glows */
 }
 
 .btn-primary:hover {
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-    transform: translateY(-1px);
+    background: var(--accent-hover);
+    transform: none;
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
+    background: #e2e8f0;
+    color: #334155;
     border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: #cbd5e1;
 }
 
 .btn-block {
@@ -364,8 +338,7 @@ body {
 .custom-file-upload {
     flex: 1;
     border: 1px dashed var(--border-color);
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
+    background: #f8fafc;
     padding: 0.75rem;
     text-align: center;
     cursor: pointer;
@@ -377,7 +350,7 @@ body {
 
 .custom-file-upload:hover {
     border-color: var(--accent);
-    background: rgba(99, 102, 241, 0.03);
+    background: #f1f5f9;
 }
 
 #csv-file {
@@ -388,9 +361,8 @@ body {
     display: none;
     align-items: center;
     gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: #f8fafc;
     padding: 0.6rem 1rem;
-    border-radius: 8px;
     border: 1px solid var(--border-color);
     font-size: 0.85rem;
     color: var(--text-secondary);
@@ -398,7 +370,7 @@ body {
 
 /* Prediction Results */
 .result-card {
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s ease-in-out;
 }
 
 .result-card.hidden {
@@ -411,84 +383,71 @@ body {
 
 .verdict-row {
     display: flex;
-    align-items: center;
-    gap: 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
     margin-bottom: 2rem;
-    background: rgba(255, 255, 255, 0.01);
+    background: #f8fafc;
     padding: 1.25rem;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
 }
 
-.gauge-container {
-    position: relative;
-    width: 120px;
-    height: 120px;
-}
-
-.gauge-ring-bg {
-    fill: none;
-    stroke: rgba(255, 255, 255, 0.04);
-    stroke-width: 6;
-}
-
-.gauge-ring-fill {
-    fill: none;
-    stroke-width: 7;
-    stroke-linecap: round;
-    transform: rotate(-90deg);
-    transform-origin: 50% 50%;
-    transition: stroke-dashoffset 0.8s ease-out;
-}
-
-.gauge-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+/* Flat Risk Bar instead of Gauge */
+.risk-bar-container {
+    width: 100%;
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
+}
+
+.risk-bar-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 #risk-percentage {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--text-primary);
 }
 
-.gauge-sub {
-    font-size: 0.65rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+.risk-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #cbd5e1;
+}
+
+.risk-bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.8s ease-out;
 }
 
 .verdict-text {
-    flex: 1;
+    width: 100%;
 }
 
 .verdict-badge {
     display: inline-block;
     padding: 0.35rem 1rem;
-    border-radius: 8px;
     font-weight: 700;
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border: 1px solid transparent;
 }
 
 .verdict-badge.approved {
     background-color: var(--success-bg);
     color: var(--success);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-color: var(--success);
 }
 
 .verdict-badge.rejected {
     background-color: var(--risk-bg);
     color: var(--risk);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-color: var(--risk);
 }
 
 #verdict-msg {
@@ -520,21 +479,20 @@ body {
 }
 
 .explanations-list li::before {
-    content: "•";
+    content: "■";
     color: var(--accent);
-    font-size: 1.2rem;
+    font-size: 0.7rem;
     position: absolute;
-    left: 0.3rem;
-    top: -0.15rem;
+    left: 0.1rem;
+    top: 0.1rem;
 }
 
-/* Spinner Loader */
+/* Spinner Loader (Rotating square, no border-radius) */
 .loader-spinner {
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-top-color: var(--text-primary);
-    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    border-top-color: var(--accent);
     animation: spin 0.8s linear infinite;
 }
 
@@ -563,7 +521,7 @@ body {
     font-size: 0.8rem;
     color: var(--text-secondary);
     border-top: 1px solid var(--border-color);
-    background: rgba(9, 13, 22, 0.5);
+    background: #ffffff;
     margin-top: auto;
 }
 

@@ -79,11 +79,6 @@ function renderPfiChart(pfiMetrics) {
         pfiChart.destroy();
     }
 
-    // Custom gradient for bar charts
-    const gradient = ctx.createLinearGradient(0, 0, 400, 0);
-    gradient.addColorStop(0, '#6366f1'); // accent color (purple)
-    gradient.addColorStop(1, '#10b981'); // success color (emerald)
-
     pfiChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -91,8 +86,7 @@ function renderPfiChart(pfiMetrics) {
             datasets: [{
                 label: 'Relative Feature Importance (%)',
                 data: values,
-                backgroundColor: gradient,
-                borderRadius: 6,
+                backgroundColor: '#2563eb', // solid blue
                 borderWidth: 0,
                 barThickness: 16
             }]
@@ -106,10 +100,12 @@ function renderPfiChart(pfiMetrics) {
                     display: false
                 },
                 tooltip: {
-                    backgroundColor: '#090d16',
+                    backgroundColor: '#ffffff',
                     titleFont: { family: 'Outfit', weight: 'bold' },
+                    titleColor: '#0f172a',
                     bodyFont: { family: 'Outfit' },
-                    borderColor: 'rgba(255,255,255,0.08)',
+                    bodyColor: '#0f172a',
+                    borderColor: '#cbd5e1',
                     borderWidth: 1,
                     callbacks: {
                         label: function(context) {
@@ -121,10 +117,10 @@ function renderPfiChart(pfiMetrics) {
             scales: {
                 x: {
                     grid: {
-                        color: 'rgba(255,255,255,0.04)'
+                        color: '#cbd5e1'
                     },
                     ticks: {
-                        color: '#94a3b8',
+                        color: '#64748b',
                         font: { family: 'Outfit', size: 10 }
                     },
                     max: 100
@@ -255,28 +251,24 @@ async function handlePrediction(e) {
         const resultCard = document.getElementById('result-card');
         resultCard.classList.remove('hidden');
 
-        // Animate circular gauge ring
-        const gaugeFill = document.getElementById('risk-gauge');
+        // Animate flat risk progress bar
+        const riskBar = document.getElementById('risk-bar');
         const riskPct = document.getElementById('risk-percentage');
         
         const probability = data.probability;
         const percentage = Math.round(probability * 100);
         
-        // Circle circumference is 2 * pi * r = 2 * 3.14159 * 52 = 326.7
-        const maxOffset = 326.7;
-        const targetOffset = maxOffset - (maxOffset * probability);
-        
-        gaugeFill.style.strokeDashoffset = targetOffset;
+        riskBar.style.width = `${percentage}%`;
         riskPct.textContent = `${percentage}%`;
 
-        // Update colors based on risk severity
-        let riskColor = '#10b981'; // green
+        // Update colors based on risk severity (solid hex colors, no gradients)
+        let riskColor = '#059669'; // emerald green
         if (percentage > 50) {
-            riskColor = '#ef4444'; // red
+            riskColor = '#dc2626'; // solid red
         } else if (percentage > 25) {
-            riskColor = '#f59e0b'; // orange
+            riskColor = '#d97706'; // warning orange
         }
-        gaugeFill.style.stroke = riskColor;
+        riskBar.style.backgroundColor = riskColor;
         riskPct.style.color = riskColor;
 
         // Render decision badge
