@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using LoanDefaultPrediction.Web.Data;
 
 namespace LoanDefaultPrediction.Web.Services
@@ -68,12 +72,41 @@ namespace LoanDefaultPrediction.Web.Services
                 return summary;
             }
 
-            // Disable AutoDetectChanges for high-performance batch insertion
-            _dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+            // Get DB Connection and open it
+            var connection = _dbContext.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
+
+            // Start raw SQLite transaction
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction.GetDbTransaction();
+            
+            // Prepared parameter insertion statement
+            command.CommandText = @"
+                INSERT INTO ""LoanRecords"" (""Age"", ""Income"", ""LoanAmount"", ""CreditScore"", ""MonthsEmployed"", ""InterestRate"", ""LoanTerm"", ""DebtToIncomeRatio"", ""Default"", ""BatchId"", ""CreatedAt"")
+                VALUES ($age, $income, $loanAmount, $creditScore, $monthsEmployed, $interestRate, $loanTerm, $debtToIncomeRatio, $default, $batchId, $createdAt);";
+
+            var ageParam = command.CreateParameter(); ageParam.ParameterName = "$age"; command.Parameters.Add(ageParam);
+            var incomeParam = command.CreateParameter(); incomeParam.ParameterName = "$income"; command.Parameters.Add(incomeParam);
+            var loanAmountParam = command.CreateParameter(); loanAmountParam.ParameterName = "$loanAmount"; command.Parameters.Add(loanAmountParam);
+            var creditScoreParam = command.CreateParameter(); creditScoreParam.ParameterName = "$creditScore"; command.Parameters.Add(creditScoreParam);
+            var monthsEmployedParam = command.CreateParameter(); monthsEmployedParam.ParameterName = "$monthsEmployed"; command.Parameters.Add(monthsEmployedParam);
+            var interestRateParam = command.CreateParameter(); interestRateParam.ParameterName = "$interestRate"; command.Parameters.Add(interestRateParam);
+            var loanTermParam = command.CreateParameter(); loanTermParam.ParameterName = "$loanTerm"; command.Parameters.Add(loanTermParam);
+            var dtiParam = command.CreateParameter(); dtiParam.ParameterName = "$debtToIncomeRatio"; command.Parameters.Add(dtiParam);
+            var defaultParam = command.CreateParameter(); defaultParam.ParameterName = "$default"; command.Parameters.Add(defaultParam);
+            var batchIdParam = command.CreateParameter(); batchIdParam.ParameterName = "$batchId"; command.Parameters.Add(batchIdParam);
+            var createdAtParam = command.CreateParameter(); createdAtParam.ParameterName = "$createdAt"; command.Parameters.Add(createdAtParam);
+
+            batchIdParam.Value = batchId;
+            createdAtParam.Value = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
             int lineNumber = 1;
             string? line;
-            int pendingCount = 0;
 
             while ((line = await reader.ReadLineAsync()) != null)
             {
@@ -133,31 +166,19 @@ namespace LoanDefaultPrediction.Web.Services
                     if (loanTerm <= 0) throw new ArgumentOutOfRangeException(nameof(loanTerm), "Loan term must be positive.");
                     if (debtToIncomeRatio < 0 || debtToIncomeRatio > 2.0f) throw new ArgumentOutOfRangeException(nameof(debtToIncomeRatio), "Debt-to-income ratio must be between 0 and 2.0.");
 
-                    _dbContext.LoanRecords.Add(new LoanRecord
-                    {
-                        Age = age,
-                        Income = income,
-                        LoanAmount = loanAmount,
-                        CreditScore = creditScore,
-                        MonthsEmployed = monthsEmployed,
-                        InterestRate = interestRate,
-                        LoanTerm = loanTerm,
-                        DebtToIncomeRatio = debtToIncomeRatio,
-                        Default = isDefault,
-                        BatchId = batchId,
-                        CreatedAt = DateTime.UtcNow
-                    });
+                    // Bind parameter values
+                    ageParam.Value = age;
+                    incomeParam.Value = income;
+                    loanAmountParam.Value = loanAmount;
+                    creditScoreParam.Value = creditScore;
+                    monthsEmployedParam.Value = monthsEmployed;
+                    interestRateParam.Value = interestRate;
+                    loanTermParam.Value = loanTerm;
+                    dtiParam.Value = debtToIncomeRatio;
+                    defaultParam.Value = isDefault ? 1 : 0;
 
+                    await command.ExecuteNonQueryAsync();
                     summary.ValidatedRecords++;
-                    pendingCount++;
-
-                    // Save batch to prevent high memory usage and Change Tracker slowing down
-                    if (pendingCount >= 10000)
-                    {
-                        await _dbContext.SaveChangesAsync();
-                        _dbContext.ChangeTracker.Clear();
-                        pendingCount = 0;
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -169,15 +190,8 @@ namespace LoanDefaultPrediction.Web.Services
                 }
             }
 
-            // Save remaining records
-            if (pendingCount > 0)
-            {
-                await _dbContext.SaveChangesAsync();
-                _dbContext.ChangeTracker.Clear();
-            }
-
-            // Restore AutoDetectChanges setting
-            _dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
+            // Commit the single transaction
+            await transaction.CommitAsync();
 
             return summary;
         }
