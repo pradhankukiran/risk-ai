@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('predict-form').addEventListener('submit', handlePrediction);
     document.getElementById('btn-train').addEventListener('click', handleTraining);
     document.getElementById('btn-ingest').addEventListener('click', handleIngestion);
+    document.getElementById('btn-kaggle-ingest').addEventListener('click', handleKaggleIngestion);
 
     // Sync custom file input text
     document.getElementById('csv-file').addEventListener('change', (e) => {
@@ -319,5 +320,51 @@ async function handlePrediction(e) {
     } finally {
         predictBtn.disabled = false;
         predictBtn.textContent = 'Calculate Risk Score';
+    }
+}
+
+async function handleKaggleIngestion() {
+    const datasetPathInput = document.getElementById('kaggle-path');
+    const datasetPath = datasetPathInput.value.trim();
+    if (!datasetPath) {
+        alert('Please enter a Kaggle dataset path in the format: owner/dataset-name');
+        return;
+    }
+
+    const progressDiv = document.getElementById('ingest-progress');
+    const statusText = document.getElementById('ingest-status-text');
+    const pullBtn = document.getElementById('btn-kaggle-ingest');
+
+    progressDiv.style.display = 'flex';
+    statusText.textContent = 'Downloading zip and extracting CSV from Kaggle API...';
+    pullBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/kaggle-ingest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ datasetPath })
+        });
+        
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.Error || 'Failed to download and ingest dataset.');
+        }
+
+        const data = await response.json();
+        statusText.textContent = 'Ingestion complete!';
+        
+        alert(`Kaggle Ingestion Succeeded!\n- Total records processed: ${data.totalRecords}\n- Validated & Saved: ${data.validatedRecords}\n- Failed/Skipped: ${data.failedRecords}`);
+        
+        // Reset path input
+        datasetPathInput.value = '';
+        
+        // Refresh statistics
+        await fetchStats();
+    } catch (error) {
+        alert(`Kaggle Ingest Error: ${error.message}`);
+    } finally {
+        progressDiv.style.display = 'none';
+        pullBtn.disabled = false;
     }
 }
