@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LoanDefaultPrediction.App/LoanDefaultPrediction.App.csproj" />
+    <Project Path="src/LoanDefaultPrediction.Common/LoanDefaultPrediction.Common.csproj" />
+  </Folder>
+</Solution>
