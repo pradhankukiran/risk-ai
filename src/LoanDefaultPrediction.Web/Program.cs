@@ -78,11 +78,11 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseCors();
 
-// Ensure Database is Created
+// Ensure Database is Created & Migrated on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<LoanDbContext>();
-    dbContext.Database.EnsureCreated();
+    dbContext.Database.Migrate();
 }
 
 app.MapGet("/api/database-stats", async (LoanDbContext dbContext) =>
@@ -95,7 +95,7 @@ app.MapGet("/api/database-stats", async (LoanDbContext dbContext) =>
     var historicalRuns = await dbContext.TrainingRuns
         .OrderByDescending(r => r.TrainedAt)
         .Take(5)
-        .Select(r => new { r.Id, r.TrainedAt, r.Accuracy, r.AreaUnderRoc, r.F1Score, r.IsActive })
+        .Select(r => new { r.Id, r.TrainedAt, r.Accuracy, r.AreaUnderRoc, r.F1Score, r.Precision, r.Recall, r.IsActive })
         .ToListAsync();
 
     return Results.Ok(new
@@ -110,6 +110,9 @@ app.MapGet("/api/database-stats", async (LoanDbContext dbContext) =>
             activeRun.Accuracy, 
             activeRun.AreaUnderRoc,
             activeRun.F1Score,
+            activeRun.Precision,
+            activeRun.Recall,
+            ConfusionMatrix = string.IsNullOrEmpty(activeRun.ConfusionMatrixJson) ? new Dictionary<string, double>() : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, double>>(activeRun.ConfusionMatrixJson),
             PfiMetrics = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, double>>(activeRun.PfiMetricsJson)
         } : null,
         HistoricalRuns = historicalRuns

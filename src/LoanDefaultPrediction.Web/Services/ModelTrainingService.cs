@@ -18,6 +18,9 @@ namespace LoanDefaultPrediction.Web.Services
         public float Accuracy { get; set; }
         public float AreaUnderRoc { get; set; }
         public float F1Score { get; set; }
+        public float Precision { get; set; }
+        public float Recall { get; set; }
+        public Dictionary<string, double> ConfusionMatrix { get; set; } = new();
         public Dictionary<string, double> FeatureImportance { get; set; } = new();
     }
 
@@ -152,6 +155,16 @@ namespace LoanDefaultPrediction.Web.Services
                 run.IsActive = false;
             }
 
+            // Extract confusion matrix counts
+            var confMatrix = metrics.ConfusionMatrix;
+            var confusionDict = new Dictionary<string, double>
+            {
+                { "TN", confMatrix.Counts[0][0] },
+                { "FP", confMatrix.Counts[0][1] },
+                { "FN", confMatrix.Counts[1][0] },
+                { "TP", confMatrix.Counts[1][1] }
+            };
+
             var newRun = new TrainingRun
             {
                 TrainedAt = DateTime.UtcNow,
@@ -159,6 +172,9 @@ namespace LoanDefaultPrediction.Web.Services
                 Accuracy = (float)metrics.Accuracy,
                 AreaUnderRoc = (float)metrics.AreaUnderRocCurve,
                 F1Score = (float)metrics.F1Score,
+                Precision = (float)metrics.PositivePrecision,
+                Recall = (float)metrics.PositiveRecall,
+                ConfusionMatrixJson = JsonSerializer.Serialize(confusionDict),
                 PfiMetricsJson = JsonSerializer.Serialize(sortedImportance),
                 IsActive = true
             };
@@ -172,6 +188,9 @@ namespace LoanDefaultPrediction.Web.Services
                 Accuracy = newRun.Accuracy,
                 AreaUnderRoc = newRun.AreaUnderRoc,
                 F1Score = newRun.F1Score,
+                Precision = newRun.Precision,
+                Recall = newRun.Recall,
+                ConfusionMatrix = confusionDict,
                 FeatureImportance = sortedImportance
             };
         }

@@ -23,6 +23,9 @@ namespace LoanDefaultPrediction.Web.Data
         public float Accuracy { get; set; }
         public float AreaUnderRoc { get; set; }
         public float F1Score { get; set; }
+        public float Precision { get; set; }
+        public float Recall { get; set; }
+        public string ConfusionMatrixJson { get; set; } = string.Empty; // Serialized TN, FP, FN, TP
         public string PfiMetricsJson { get; set; } = string.Empty; // Serialized JSON of feature importance
         public bool IsActive { get; set; }
     }
