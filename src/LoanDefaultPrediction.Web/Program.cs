@@ -30,10 +30,29 @@ if (!string.IsNullOrEmpty(modelDirectory) && !Directory.Exists(modelDirectory))
 {
     Directory.CreateDirectory(modelDirectory);
 }
-// Bootstrap copy if we have a model.zip in the solution root
-if (!File.Exists(modelPath) && File.Exists("model.zip"))
+// Bootstrap copy if active_model.zip is missing
+if (!File.Exists(modelPath))
 {
-    File.Copy("model.zip", modelPath);
+    // 1. Try to find the most recent model_*.zip in the models directory
+    var zipFiles = Directory.GetFiles(modelDirectory, "model_*.zip");
+    if (zipFiles.Length > 0)
+    {
+        var mostRecent = zipFiles.Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTime).First();
+        File.Copy(mostRecent.FullName, modelPath, overwrite: true);
+    }
+    // 2. Search for solution-level model.zip fallback
+    else if (File.Exists("model.zip"))
+    {
+        File.Copy("model.zip", modelPath, overwrite: true);
+    }
+    else if (File.Exists("../model.zip"))
+    {
+        File.Copy("../model.zip", modelPath, overwrite: true);
+    }
+    else if (File.Exists("../../model.zip"))
+    {
+        File.Copy("../../model.zip", modelPath, overwrite: true);
+    }
 }
 
 if (File.Exists(modelPath))
