@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskAI // Loan Default Prediction & Explainability Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Style Sheet -->
+    <link rel="stylesheet" href="index.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <header class="app-header">
+        <div class="logo-container">
+            <span class="logo-icon">▲</span>
+            <h1>Risk<span>AI</span></h1>
+            <span class="badge">ML.NET 10.0</span>
+        </div>
+        <div class="status-container">
+            <span class="status-dot pulsating"></span>
+            <span id="connection-status">SQLite Connected</span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- LEFT COLUMN: Admin, Stats, Explainability -->
+        <section class="col-left">
+            <!-- Summary Stats Card -->
+            <div class="card stats-card">
+                <div class="card-header">
+                    <h2>Portfolio Overview</h2>
+                    <span class="subtitle">Real-time database metrics</span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <span class="stat-label">Total Loan Records</span>
+                        <span class="stat-value" id="stat-total">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Avg. Default Rate</span>
+                        <span class="stat-value text-risk" id="stat-rate">0.0%</span>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="stat-progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Active Model Card -->
+            <div class="card model-card">
+                <div class="card-header">
+                    <h2>Active Model Performance</h2>
+                    <span class="badge badge-success" id="active-model-status">None Active</span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <span class="stat-label">Accuracy Score</span>
+                        <span class="stat-value" id="model-accuracy">0.00%</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Area Under ROC (AUC)</span>
+                        <span class="stat-value" id="model-auc">0.00</span>
+                    </div>
+                </div>
+                <div class="model-meta">
+                    <span>Trained: <strong id="model-trained-at">-</strong></span>
+                </div>
+            </div>
+
+            <!-- Explainability (PFI) Chart -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h2>Permutation Feature Importance (PFI)</h2>
+                    <span class="subtitle">Global explainability (AUC drop influence)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pfiChart"></canvas>
+                    <div class="chart-fallback" id="chart-placeholder">
+                        <p>No active model trained. Please ingest data and train to view explainability.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ingestion & Training Panel -->
+            <div class="card admin-card">
+                <div class="card-header">
+                    <h2>Model Management Console</h2>
+                    <span class="subtitle">Data ingestion and training pipeline controls</span>
+                </div>
+                <div class="admin-actions">
+                    <div class="upload-section">
+                        <label for="csv-file" class="custom-file-upload">
+                            Choose CSV File
+                        </label>
+                        <input type="file" id="csv-file" accept=".csv">
+                        <button class="btn btn-secondary" id="btn-ingest">Upload & Ingest</button>
+                    </div>
+                    <div class="ingest-progress-container" id="ingest-progress">
+                        <div class="loader-spinner"></div>
+                        <span id="ingest-status-text">Ingesting data...</span>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" id="btn-train">
+                        <span class="btn-text">Execute Training Pipeline</span>
+                        <div class="btn-loader loader-spinner"></div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Application Predictor -->
+        <section class="col-right">
+            <!-- Calculator Input -->
+            <div class="card calculator-card">
+                <div class="card-header">
+                    <h2>Underwriting Decision Sandbox</h2>
+                    <span class="subtitle">Evaluate credit risk for a new loan application</span>
+                </div>
+                <form id="predict-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="input-age">Age (Years)</label>
+                            <input type="number" id="input-age" min="18" max="100" value="35" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-income">Annual Income ($)</label>
+                            <input type="number" id="input-income" min="0" value="65000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-amount">Requested Loan Amount ($)</label>
+                            <input type="number" id="input-amount" min="1" value="15000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-score">Credit Score (FICO)</label>
+                            <input type="number" id="input-score" min="300" max="850" value="680" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-employed">Employment Length (Months)</label>
+                            <input type="number" id="input-employed" min="0" value="48" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-rate">Interest Rate (%)</label>
+                            <input type="number" id="input-rate" step="0.01" min="0" value="8.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-term">Loan Term (Months)</label>
+                            <select id="input-term">
+                                <option value="12">12 Months</option>
+                                <option value="24">24 Months</option>
+                                <option value="36" selected>36 Months</option>
+                                <option value="48">48 Months</option>
+                                <option value="60">60 Months</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-dti">Debt-To-Income Ratio (DTI)</label>
+                            <input type="number" id="input-dti" step="0.01" min="0" max="2.0" value="0.32" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btn-predict">Calculate Risk Score</button>
+                </form>
+            </div>
+
+            <!-- Calculator Output -->
+            <div class="card result-card hidden" id="result-card">
+                <div class="card-header">
+                    <h2>Underwriting Decision & Insights</h2>
+                </div>
+                
+                <div class="result-details">
+                    <!-- Gauge and Verdict -->
+                    <div class="verdict-row">
+                        <div class="gauge-container">
+                            <svg class="gauge-ring" width="120" height="120">
+                                <circle class="gauge-ring-bg" cx="60" cy="60" r="52"></circle>
+                                <circle class="gauge-ring-fill" id="risk-gauge" cx="60" cy="60" r="52" style="stroke-dasharray: 326.7; stroke-dashoffset: 326.7;"></circle>
+                            </svg>
+                            <div class="gauge-text">
+                                <span id="risk-percentage">0%</span>
+                                <span class="gauge-sub">Risk Score</span>
+                            </div>
+                        </div>
+                        <div class="verdict-text">
+                            <div class="verdict-badge" id="verdict-badge">Approved</div>
+                            <p id="verdict-msg">The applicant poses a low default risk.</p>
+                        </div>
+                    </div>
+
+                    <!-- Explanations List -->
+                    <div class="explanations-section">
+                        <h3>Model Risk Justifications</h3>
+                        <ul class="explanations-list" id="explanations-list">
+                            <li>Applicant credit rating is strong.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 RiskAI Portfolio Project. Powered by .NET 10 & ML.NET LightGBM.</p>
+    </footer>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
