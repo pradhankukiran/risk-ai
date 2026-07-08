@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using LoanDefaultPrediction.Web.Data;
 
@@ -40,6 +41,27 @@ namespace LoanDefaultPrediction.Web.Services
                 return summary;
             }
 
+            var headers = headerLine.Split(',').Select(h => h.Trim().ToLower()).ToList();
+            
+            // Map headers to indexes by name (supports various common Kaggle schema variants)
+            int ageIdx = headers.FindIndex(h => h == "age");
+            int incomeIdx = headers.FindIndex(h => h == "income" || h == "annualincome" || h == "person_income");
+            int loanAmountIdx = headers.FindIndex(h => h == "loanamount" || h == "loan_amnt" || h == "loan_amount" || h == "loanamnt");
+            int creditScoreIdx = headers.FindIndex(h => h == "creditscore" || h == "fico" || h == "credit_score");
+            int monthsEmployedIdx = headers.FindIndex(h => h == "monthsemployed" || h == "employment" || h == "months_employed" || h == "employmentlength" || h == "employment_length");
+            int interestRateIdx = headers.FindIndex(h => h == "interestrate" || h == "loan_int_rate" || h == "interest_rate" || h == "interestrate");
+            int loanTermIdx = headers.FindIndex(h => h == "loanterm" || h == "term" || h == "loan_term");
+            int dtiIdx = headers.FindIndex(h => h == "dtiratio" || h == "dti" || h == "debttoincomeratio" || h == "debt_to_income");
+            int defaultIdx = headers.FindIndex(h => h == "default" || h == "loan_default" || h == "loan_default");
+
+            // Validate that we found all required columns
+            if (ageIdx == -1 || incomeIdx == -1 || loanAmountIdx == -1 || creditScoreIdx == -1 || 
+                monthsEmployedIdx == -1 || interestRateIdx == -1 || loanTermIdx == -1 || dtiIdx == -1 || defaultIdx == -1)
+            {
+                summary.Errors.Add("CSV header is missing one or more required columns (Age, Income, LoanAmount, CreditScore, MonthsEmployed, InterestRate, LoanTerm, DtiRatio, Default).");
+                return summary;
+            }
+
             int lineNumber = 1;
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
@@ -50,27 +72,33 @@ namespace LoanDefaultPrediction.Web.Services
                 summary.TotalRecords++;
 
                 var parts = line.Split(',');
-                if (parts.Length < 9)
+                // Find maximum index required
+                int maxIdx = Math.Max(
+                    Math.Max(Math.Max(ageIdx, incomeIdx), Math.Max(loanAmountIdx, creditScoreIdx)),
+                    Math.Max(Math.Max(monthsEmployedIdx, interestRateIdx), Math.Max(Math.Max(loanTermIdx, dtiIdx), defaultIdx))
+                );
+
+                if (parts.Length <= maxIdx)
                 {
                     summary.FailedRecords++;
-                    summary.Errors.Add($"Line {lineNumber}: Expected at least 9 columns, found {parts.Length}.");
+                    summary.Errors.Add($"Line {lineNumber}: Expected at least {maxIdx + 1} columns, found {parts.Length}.");
                     continue;
                 }
 
                 try
                 {
-                    // Trim parts and parse
-                    float age = float.Parse(parts[0].Trim(), CultureInfo.InvariantCulture);
-                    float income = float.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
-                    float loanAmount = float.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
-                    float creditScore = float.Parse(parts[3].Trim(), CultureInfo.InvariantCulture);
-                    float monthsEmployed = float.Parse(parts[4].Trim(), CultureInfo.InvariantCulture);
-                    float interestRate = float.Parse(parts[5].Trim(), CultureInfo.InvariantCulture);
-                    float loanTerm = float.Parse(parts[6].Trim(), CultureInfo.InvariantCulture);
-                    float debtToIncomeRatio = float.Parse(parts[7].Trim(), CultureInfo.InvariantCulture);
+                    // Trim parts and parse using mapped indexes
+                    float age = float.Parse(parts[ageIdx].Trim(), CultureInfo.InvariantCulture);
+                    float income = float.Parse(parts[incomeIdx].Trim(), CultureInfo.InvariantCulture);
+                    float loanAmount = float.Parse(parts[loanAmountIdx].Trim(), CultureInfo.InvariantCulture);
+                    float creditScore = float.Parse(parts[creditScoreIdx].Trim(), CultureInfo.InvariantCulture);
+                    float monthsEmployed = float.Parse(parts[monthsEmployedIdx].Trim(), CultureInfo.InvariantCulture);
+                    float interestRate = float.Parse(parts[interestRateIdx].Trim(), CultureInfo.InvariantCulture);
+                    float loanTerm = float.Parse(parts[loanTermIdx].Trim(), CultureInfo.InvariantCulture);
+                    float debtToIncomeRatio = float.Parse(parts[dtiIdx].Trim(), CultureInfo.InvariantCulture);
                     
                     bool isDefault = false;
-                    string defaultStr = parts[8].Trim().ToLower();
+                    string defaultStr = parts[defaultIdx].Trim().ToLower();
                     if (defaultStr == "true" || defaultStr == "1" || defaultStr == "yes")
                     {
                         isDefault = true;
@@ -81,7 +109,7 @@ namespace LoanDefaultPrediction.Web.Services
                     }
                     else
                     {
-                        throw new FormatException($"Invalid value for Default column: '{parts[8]}'");
+                        throw new FormatException($"Invalid value for Default column: '{parts[defaultIdx]}'");
                     }
 
                     // Validate ranges
