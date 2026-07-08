@@ -22,7 +22,7 @@ namespace LoanDefaultPrediction.Web.Services
             _configuration = configuration;
         }
 
-        public async Task<IngestionSummary> DownloadAndIngestAsync(string datasetPath, string batchId)
+        public async Task<IngestionSummary> DownloadAndIngestAsync(string datasetPath, string batchId, bool clearExisting = false)
         {
             // Read credentials from Environment variables or App Settings configuration
             string username = Environment.GetEnvironmentVariable("KAGGLE_USERNAME") 
@@ -82,7 +82,7 @@ namespace LoanDefaultPrediction.Web.Services
 
             // Open the CSV file entry stream and ingest it directly into SQLite
             using var csvStream = csvEntry.Open();
-            return await _ingestionService.IngestCsvAsync(csvStream, batchId);
+            return await _ingestionService.IngestCsvAsync(csvStream, batchId, clearExisting);
         }
     }
 }

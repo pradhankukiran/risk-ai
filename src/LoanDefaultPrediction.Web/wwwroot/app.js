@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-train').addEventListener('click', handleTraining);
     document.getElementById('btn-ingest').addEventListener('click', handleIngestion);
     document.getElementById('btn-kaggle-ingest').addEventListener('click', handleKaggleIngestion);
+    document.getElementById('btn-clear').addEventListener('click', handleDatabaseClear);
 
     // Sync custom file input text
     document.getElementById('csv-file').addEventListener('change', (e) => {
@@ -366,5 +367,28 @@ async function handleKaggleIngestion() {
     } finally {
         progressDiv.style.display = 'none';
         pullBtn.disabled = false;
+    }
+}
+
+async function handleDatabaseClear() {
+    if (!confirm("Are you sure you want to permanently delete all ingested loan records and trained models?")) {
+        return;
+    }
+
+    const clearBtn = document.getElementById('btn-clear');
+    clearBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/database-clear', { method: 'POST' });
+        if (!response.ok) {
+            throw new Error('Failed to reset database.');
+        }
+
+        alert('Database successfully reset!');
+        await fetchStats();
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        clearBtn.disabled = false;
     }
 }

@@ -26,9 +26,17 @@ namespace LoanDefaultPrediction.Web.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IngestionSummary> IngestCsvAsync(Stream csvStream, string batchId)
+        public async Task<IngestionSummary> IngestCsvAsync(Stream csvStream, string batchId, bool clearExisting = false)
         {
             var summary = new IngestionSummary { BatchId = batchId };
+
+            if (clearExisting)
+            {
+                _dbContext.LoanRecords.RemoveRange(_dbContext.LoanRecords);
+                _dbContext.TrainingRuns.RemoveRange(_dbContext.TrainingRuns);
+                await _dbContext.SaveChangesAsync();
+            }
+
             var recordsToInsert = new List<LoanRecord>();
 
             using var reader = new StreamReader(csvStream);

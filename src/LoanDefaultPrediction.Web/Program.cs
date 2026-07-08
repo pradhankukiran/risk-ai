@@ -141,7 +141,7 @@ app.MapGet("/api/database-stats", async (LoanDbContext dbContext) =>
     });
 });
 
-app.MapPost("/api/ingest", async (IFormFile file, IngestionService ingestionService) =>
+app.MapPost("/api/ingest", async (IFormFile file, IngestionService ingestionService, bool clearExisting = true) =>
 {
     if (file == null || file.Length == 0)
     {
@@ -156,7 +156,7 @@ app.MapPost("/api/ingest", async (IFormFile file, IngestionService ingestionServ
     var batchId = Guid.NewGuid().ToString("N");
     using var stream = file.OpenReadStream();
     
-    var summary = await ingestionService.IngestCsvAsync(stream, batchId);
+    var summary = await ingestionService.IngestCsvAsync(stream, batchId, clearExisting);
     
     return Results.Ok(summary);
 }).DisableAntiforgery();
@@ -171,7 +171,7 @@ app.MapPost("/api/kaggle-ingest", async (KaggleIngestRequest request, DatasetDow
     var batchId = Guid.NewGuid().ToString("N");
     try
     {
-        var summary = await downloadService.DownloadAndIngestAsync(request.DatasetPath, batchId);
+        var summary = await downloadService.DownloadAndIngestAsync(request.DatasetPath, batchId, request.ClearExisting);
         return Results.Ok(summary);
     }
     catch (InvalidOperationException ex) when (ex.Message.Contains("credentials"))
@@ -182,6 +182,14 @@ app.MapPost("/api/kaggle-ingest", async (KaggleIngestRequest request, DatasetDow
     {
         return Results.BadRequest(new { Error = ex.Message });
     }
+}).DisableAntiforgery();
+
+app.MapPost("/api/database-clear", async (LoanDbContext dbContext) =>
+{
+    dbContext.LoanRecords.RemoveRange(dbContext.LoanRecords);
+    dbContext.TrainingRuns.RemoveRange(dbContext.TrainingRuns);
+    await dbContext.SaveChangesAsync();
+    return Results.Ok(new { Message = "Database successfully reset." });
 }).DisableAntiforgery();
 
 app.MapPost("/api/train", async (ModelTrainingService trainingService, IServiceProvider serviceProvider) =>
@@ -279,4 +287,5 @@ app.Run();
 public class KaggleIngestRequest
 {
     public string DatasetPath { get; set; } = string.Empty;
+    public bool ClearExisting { get; set; } = true;
 }
