@@ -1,0 +1,31 @@
+# Build and Release Folders
+[Db]in/
+[Oo]bj/
+[Oo]ut/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Mono auto generated files
+mono_crash.*
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ML.NET models & data files (ignore large data files, models can be ignored or specifically committed if small/required)
+*.zip
+*.csv
+*.tsv
+!*.gitkeep
