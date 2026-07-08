@@ -140,8 +140,10 @@ namespace LoanDefaultPrediction.Web.Services
             }
             string modelFileName = $"model_{Guid.NewGuid():N}.zip";
             string modelPath = Path.Combine(modelFolder, modelFileName);
+            string activeModelPath = Path.Combine(modelFolder, "active_model.zip");
             
             mlContext.Model.Save(model, trainData.Schema, modelPath);
+            File.Copy(modelPath, activeModelPath, overwrite: true);
 
             // 10. Update DB (mark existing active runs as inactive)
             var activeRuns = await _dbContext.TrainingRuns.Where(r => r.IsActive).ToListAsync();
