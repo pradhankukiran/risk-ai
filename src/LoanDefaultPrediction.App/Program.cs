@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace LoanDefaultPrediction.App
 {
@@ -12,21 +13,41 @@ namespace LoanDefaultPrediction.App
             Console.WriteLine("=================================================");
             Console.ResetColor();
 
-            Console.WriteLine("\nProject successfully scaffolded!");
-            Console.WriteLine("This solution contains:");
-            Console.WriteLine("  - LoanDefaultPrediction.Common : Shared library containing data models.");
-            Console.WriteLine("  - LoanDefaultPrediction.App    : Console app for data generation, training, and inference.");
-            
-            Console.WriteLine("\nFuture Phases Roadmap:");
-            Console.WriteLine("  - Phase 1: Data Preparation & Synthetic Dataset Generation");
-            Console.WriteLine("  - Phase 2: Building and Training the ML.NET Pipeline");
-            Console.WriteLine("  - Phase 3: Model Evaluation and Inference");
+            if (args.Length > 0 && args[0].ToLower() == "--generate")
+            {
+                int count = 10000;
+                if (args.Length > 1 && int.TryParse(args[1], out int parsedCount))
+                {
+                    count = parsedCount;
+                }
 
-            Console.WriteLine("\nAvailable CLI arguments (to be implemented):");
-            Console.WriteLine("  --generate   Generate a synthetic loan dataset CSV");
-            Console.WriteLine("  --train      Train, evaluate, and save the ML model");
-            Console.WriteLine("  --predict    Run loan default prediction interactively");
-            Console.WriteLine("\nPhase 0 Setup complete. Ready for Phase 1!");
+                string outputPath = "loans_synthetic.csv";
+                if (args.Length > 2)
+                {
+                    outputPath = args[2];
+                }
+
+                Console.WriteLine($"\nGenerating {count} synthetic loan records...");
+                try
+                {
+                    DataGenerator.GenerateCsv(outputPath, count);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Successfully generated {count} records and saved to '{Path.GetFullPath(outputPath)}'");
+                    Console.ResetColor();
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error generating data: {ex.Message}");
+                    Console.ResetColor();
+                }
+                return;
+            }
+
+            Console.WriteLine("\nAvailable CLI arguments:");
+            Console.WriteLine("  --generate [count] [path]  Generate a synthetic loan dataset CSV (default: 10000 records to loans_synthetic.csv)");
+            Console.WriteLine("  --train                    Train, evaluate, and save the ML model");
+            Console.WriteLine("  --predict                  Run loan default prediction interactively");
         }
     }
 }
