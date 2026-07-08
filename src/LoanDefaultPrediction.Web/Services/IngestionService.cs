@@ -37,8 +37,6 @@ namespace LoanDefaultPrediction.Web.Services
                 await _dbContext.SaveChangesAsync();
             }
 
-            var recordsToInsert = new List<LoanRecord>();
-
             using var reader = new StreamReader(csvStream);
             
             // Read Header
@@ -60,7 +58,7 @@ namespace LoanDefaultPrediction.Web.Services
             int interestRateIdx = headers.FindIndex(h => h == "interestrate" || h == "loan_int_rate" || h == "interest_rate" || h == "interestrate");
             int loanTermIdx = headers.FindIndex(h => h == "loanterm" || h == "term" || h == "loan_term");
             int dtiIdx = headers.FindIndex(h => h == "dtiratio" || h == "dti" || h == "debttoincomeratio" || h == "debt_to_income");
-            int defaultIdx = headers.FindIndex(h => h == "default" || h == "loan_default" || h == "loan_default");
+            int defaultIdx = headers.FindIndex(h => h == "default" || h == "loan_default");
 
             // Validate that we found all required columns
             if (ageIdx == -1 || incomeIdx == -1 || loanAmountIdx == -1 || creditScoreIdx == -1 || 
@@ -70,8 +68,13 @@ namespace LoanDefaultPrediction.Web.Services
                 return summary;
             }
 
+            // Disable AutoDetectChanges for high-performance batch insertion
+            _dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+
             int lineNumber = 1;
             string? line;
+            int pendingCount = 0;
+
             while ((line = await reader.ReadLineAsync()) != null)
             {
                 lineNumber++;
@@ -130,7 +133,7 @@ namespace LoanDefaultPrediction.Web.Services
                     if (loanTerm <= 0) throw new ArgumentOutOfRangeException(nameof(loanTerm), "Loan term must be positive.");
                     if (debtToIncomeRatio < 0 || debtToIncomeRatio > 2.0f) throw new ArgumentOutOfRangeException(nameof(debtToIncomeRatio), "Debt-to-income ratio must be between 0 and 2.0.");
 
-                    recordsToInsert.Add(new LoanRecord
+                    _dbContext.LoanRecords.Add(new LoanRecord
                     {
                         Age = age,
                         Income = income,
@@ -146,6 +149,15 @@ namespace LoanDefaultPrediction.Web.Services
                     });
 
                     summary.ValidatedRecords++;
+                    pendingCount++;
+
+                    // Save batch to prevent high memory usage and Change Tracker slowing down
+                    if (pendingCount >= 10000)
+                    {
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.ChangeTracker.Clear();
+                        pendingCount = 0;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -157,11 +169,15 @@ namespace LoanDefaultPrediction.Web.Services
                 }
             }
 
-            if (recordsToInsert.Count > 0)
+            // Save remaining records
+            if (pendingCount > 0)
             {
-                await _dbContext.LoanRecords.AddRangeAsync(recordsToInsert);
                 await _dbContext.SaveChangesAsync();
+                _dbContext.ChangeTracker.Clear();
             }
+
+            // Restore AutoDetectChanges setting
+            _dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
 
             return summary;
         }
