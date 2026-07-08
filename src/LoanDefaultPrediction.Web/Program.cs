@@ -16,6 +16,7 @@ builder.Services.AddDbContext<LoanDbContext>(options =>
 
 // Register Services
 builder.Services.AddScoped<IngestionService>();
+builder.Services.AddScoped<ModelTrainingService>();
 
 // Configure CORS to allow local dev access
 builder.Services.AddCors(options =>
@@ -75,6 +76,19 @@ app.MapPost("/api/ingest", async (IFormFile file, IngestionService ingestionServ
     var summary = await ingestionService.IngestCsvAsync(stream, batchId);
     
     return Results.Ok(summary);
+}).DisableAntiforgery();
+
+app.MapPost("/api/train", async (ModelTrainingService trainingService) =>
+{
+    try
+    {
+        var result = await trainingService.TrainModelAsync();
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { Error = ex.Message });
+    }
 }).DisableAntiforgery();
 
 app.Run();
