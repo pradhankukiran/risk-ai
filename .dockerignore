@@ -12,3 +12,5 @@
 *.userosscache
 *.sln.docstates
 mono_crash.*
+.env
+*.env

@@ -12,6 +12,27 @@ using LoanDefaultPrediction.Common;
 using LoanDefaultPrediction.Web.Data;
 using LoanDefaultPrediction.Web.Services;
 
+// Load .env file if it exists (for local development)
+var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (!File.Exists(envFilePath))
+{
+    envFilePath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+}
+if (File.Exists(envFilePath))
+{
+    foreach (var line in File.ReadAllLines(envFilePath))
+    {
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+        var parts = line.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 2)
+        {
+            var key = parts[0].Trim();
+            var val = parts[1].Trim().Trim('"').Trim('\'');
+            Environment.SetEnvironmentVariable(key, val);
+        }
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Register DbContext with SQLite
