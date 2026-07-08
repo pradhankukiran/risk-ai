@@ -35,11 +35,31 @@ namespace LoanDefaultPrediction.Web.Services
                 throw new InvalidOperationException("Kaggle credentials are not configured. Please set KAGGLE_USERNAME and KAGGLE_KEY environment variables.");
             }
 
+            // Automatically extract owner and dataset name if a full URL is provided
+            string normalizedPath = datasetPath.Trim();
+            if (normalizedPath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+                normalizedPath.StartsWith("https://", StringComparison.OrdinalIgnoreCase) || 
+                normalizedPath.Contains("kaggle.com"))
+            {
+                int doubleSlashIdx = normalizedPath.IndexOf("//");
+                if (doubleSlashIdx != -1)
+                {
+                    normalizedPath = normalizedPath.Substring(doubleSlashIdx + 2);
+                }
+                
+                var urlParts = normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                int datasetsIdx = Array.FindIndex(urlParts, p => p.Equals("datasets", StringComparison.OrdinalIgnoreCase));
+                if (datasetsIdx != -1 && urlParts.Length > datasetsIdx + 2)
+                {
+                    normalizedPath = $"{urlParts[datasetsIdx + 1]}/{urlParts[datasetsIdx + 2]}";
+                }
+            }
+
             // Validate dataset path format (owner/dataset-name)
-            var parts = datasetPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var parts = normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 2)
             {
-                throw new ArgumentException("Dataset path must be in the format 'owner/dataset-name'.");
+                throw new ArgumentException("Dataset path must be in the format 'owner/dataset-name' or a valid Kaggle dataset URL.");
             }
 
             string owner = parts[0];
